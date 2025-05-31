@@ -1,18 +1,23 @@
-const {  mongoose } = require("mongoose");
-const { config } = require('dotenv');
+import mongoose from 'mongoose'
+import { config } from "dotenv";
+import { User } from '../models/User';
+import { Tournament } from '../models/Tournament';
+import { GameAccount } from '../models/GameAccount';
+import { KYC } from '../models/KYC';
+import { TournamentApplicant } from '../models/TournamentApplicant';
 
-
-// const { CleaningChart } = require('./models/CleaningChart')
 
 config();
-const connectDB = async ()=>{
+export const connectDB = async ()=>{
     try{
+     
         const uri = process.env.MONGODB_URI;
+        
+         if (typeof uri !== "string") {
+    return;
+}
   //         console.log('MongoDB URI:', uri);
-        await mongoose.connect(uri,{
-            useNewUrlParser: true,
-      useUnifiedTopology: true,
-        })
+          await mongoose.connect(uri)
         console.log("connect to mongo");
     }
     catch(error){
@@ -21,4 +26,4 @@ const connectDB = async ()=>{
     }
 }
 
-module.exports={  connectDB  }
+export {User,Tournament,GameAccount,KYC,TournamentApplicant}

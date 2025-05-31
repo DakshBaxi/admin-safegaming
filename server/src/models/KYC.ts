@@ -11,4 +11,4 @@ const kycSubmissionSchema = new mongoose.Schema({
   reviewedAt: { type: Date }
 });
 
-module.exports = mongoose.model('KYCSubmission', kycSubmissionSchema);
+export const KYC = mongoose.model('KYCSubmission', kycSubmissionSchema);

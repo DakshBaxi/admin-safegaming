@@ -10,4 +10,4 @@ const gameAccountSchema = new mongoose.Schema({
   addedAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('GameAccount', gameAccountSchema);
+export const GameAccount = mongoose.model('GameAccount', gameAccountSchema);

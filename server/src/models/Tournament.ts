@@ -10,4 +10,4 @@ const tournamentSchema = new mongoose.Schema({
   maxPlayers: { type: Number, required: true },
 }, { timestamps: { createdAt: true, updatedAt: false } });
 
-module.exports = mongoose.model('Tournament', tournamentSchema);
+export const Tournament = mongoose.model('Tournament', tournamentSchema);

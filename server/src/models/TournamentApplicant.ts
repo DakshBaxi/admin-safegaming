@@ -9,4 +9,4 @@ const tournamentApplicantSchema = new mongoose.Schema({
   joinedAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('TournamentApplicant', tournamentApplicantSchema);
+export const TournamentApplicant = mongoose.model('TournamentApplicant', tournamentApplicantSchema);
