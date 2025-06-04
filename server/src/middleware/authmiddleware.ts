@@ -1,25 +1,33 @@
 import { Request,Response,NextFunction } from "express"
 import {auth} from '../config/firebase'
 
-interface userRequestAuthentication extends Request{
-    user ?: string
+export interface userRequestAuthentication extends Request{
+  user?: {
+    uid: string;
+    email?: string;
+    profileUrl?: string;
+  };
 }
 
 export const authMiddleware= async (req:userRequestAuthentication,res:Response,next:NextFunction)=>{
     const authHeader = req.headers.authorization;   
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Unauthorized: No token provided' });
+     res.status(401).json({ message: 'Unauthorized: No token provided' });
+     return
   }
    const idToken = authHeader.split('Bearer ')[1];
   try {
     const decodedToken  = await auth.verifyIdToken(idToken);
-    if(typeof(decodedToken)!=="string"){
-        return;
-    }
-    req.user = decodedToken;
+
+      req.user = {
+      uid: decodedToken.uid,
+      email: decodedToken.email,
+      profileUrl: decodedToken.picture, // 👈 Firebase returns `picture` for profile URL
+    };
     next();
   } catch (error) {
     console.error('Error verifying token:', error);
-    return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+   res.status(401).json({ message: 'Unauthorized: Invalid token' });
+    return ;
   }
 }

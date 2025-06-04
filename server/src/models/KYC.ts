@@ -2,8 +2,7 @@
 import mongoose from 'mongoose'
 
 const kycSubmissionSchema = new mongoose.Schema({
-  kycId: { type: String, required: true, unique: true }, // UUID
-  userId: { type: String, required: true, ref: 'User' },
+  userId: { type: mongoose.Schema.ObjectId, required: true, ref: 'User' },
   govtIdUrl: { type: String, required: true },
   selfieUrl: { type: String, required: true },
   status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
