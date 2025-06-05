@@ -37,6 +37,27 @@ router.post('/',authMiddleware, async (req:userRequestAuthentication, res) => {
   try {
    const { email, profileUrl } = req.user!;
    const { fullName, phone, gamerTag, gameIds } = req.body
+   const validateGamerTag = await User.findOne({gamerTag})
+   const validatePhoneNumber = await User.findOne({phone})
+  if (validateGamerTag) {
+      res.status(409).json({ message: "Gamer Tag already in use" });
+       return
+    }
+
+    if (validatePhoneNumber) {
+      res.status(409).json({ message: "Phone Number already in use" });
+       return
+    }
+
+    const gameIdFields = Object.entries(gameIds || {});
+    for (const [game, id] of gameIdFields) {
+      if (!id) continue;
+      const existing = await User.findOne({ [`gameIds.${game}`]: id });
+      if (existing) {
+        res.status(409).json({ message: `${game.toUpperCase()} ID already in use` });
+         return
+      }
+    }
     const newUser = await User.create({
       email:email,
       profileUrl:profileUrl,
