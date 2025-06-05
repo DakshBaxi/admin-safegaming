@@ -28,7 +28,12 @@ const tournamentSchema = new mongoose.Schema({
   game: {
     type: String,
     required: [true, 'Game is required'],
-    enum: ['Valorant', 'League of Legends', 'Counter-Strike 2', 'CS:GO', 'Dota 2', 'Fortnite', 'Apex Legends'],
+    enum: ['valorant', 
+       'counterStrike2',
+       'bgmi',
+       'freeFire'
+      //  'League of Legends','CS:GO', 'Dota 2', 'Fortnite', 'Apex Legends'
+      ],
     trim: true
   },
   status: {
@@ -65,18 +70,13 @@ const tournamentSchema = new mongoose.Schema({
   trustScoreThreshold: {
     type: Number,
     required: [true, 'Trust score threshold is required'],
-    min: [0, 'Trust score cannot be negative'],
-    max: [100, 'Trust score cannot exceed 100']
-  },
-  organizer: {
-    type: String,
-    required: [true, 'Organizer is required'],
-    trim: true
   },
   organizerId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: [true, 'Organizer ID is required']
+    // type: mongoose.Schema.Types.ObjectId,
+    // ref: 'Organizer',
+    // required: [true, 'Organizer ID is required']
+       required: true,
+    type:String,
   },
   registrationDeadline: {
     type: Date,
@@ -119,9 +119,10 @@ const tournamentSchema = new mongoose.Schema({
     default: true
   },
   createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    // type: mongoose.Schema.Types.ObjectId,
+    // ref: 'Organizer',
+    required: true,
+    type:String,
   }
 }, {
   timestamps: true,

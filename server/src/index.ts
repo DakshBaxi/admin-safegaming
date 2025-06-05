@@ -2,7 +2,7 @@ import  express  from "express";
 import { config } from "dotenv";
 import playerRoute from './routes/playerRoute'
 import adminRoute from './routes/adminRoute'
-// import tournamentRoute from './routes/tournamentRoute'
+import tournamentRoute from './routes/tournamentRoute'
 import { connectDB } from "./config/db";
 import playmentRoute from "./routes/razorPaymentRoute"
 import cors from "cors"
@@ -29,4 +29,4 @@ app.use('/api/player',playerRoute);
 
 app.use('/api/admin',adminRoute);
 app.use('/api/payment',playmentRoute)
-// app.use('/api/tournament',tournamentRoute);
+app.use('/api/tournament',tournamentRoute);
