@@ -63,7 +63,7 @@ const tournamentSchema = new mongoose.Schema({
     min: 0
   },
   prizePool: {
-    type: String,
+    type: Number,
     required: [true, 'Prize pool is required'],
     trim: true
   },
