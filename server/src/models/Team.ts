@@ -26,7 +26,11 @@ const teamSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  tournaments:[{
+    type: mongoose.Schema.Types.ObjectId,
+    ref:"Tournament",
+  }]
 },{
     timestamps:true,
 });

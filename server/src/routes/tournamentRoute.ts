@@ -26,11 +26,13 @@ router.post("/create", async (req, res) => {
       entryFee = "0",
       hasFee = false,
     } = req.body;
-
-    if (!title || !game || !description || !date || !maxPlayers || !prizePool || !trustScoreThreshold || !registrationDeadline) {
+const trustScoreThresholdInt = parseInt(trustScoreThreshold)
+    if (!title || !game || !description || !date || !maxPlayers || !prizePool || !registrationDeadline) {
       res.status(400).json({ error: "All required fields must be filled." });
        return
     }
+
+    
 
     const newTournament = new Tournament({
       title,
@@ -39,7 +41,7 @@ router.post("/create", async (req, res) => {
       date: new Date(date),
       maxPlayers: parseInt(maxPlayers),
       prizePool,
-      trustScoreThreshold: parseInt(trustScoreThreshold),
+      trustScoreThreshold: trustScoreThresholdInt,
       registrationDeadline: new Date(registrationDeadline),
       location,
       rules,
@@ -104,8 +106,8 @@ router.put("/edit/:id", async (req, res) => {
       entryFee = "0",
       hasFee = false,
     } = req.body;
-
-    if (!title || !game || !description || !date || !maxPlayers || !prizePool || !trustScoreThreshold || !registrationDeadline) {
+    const trustScoreThresholdInt = parseInt(trustScoreThreshold)
+    if (!title || !game || !description || !date || !maxPlayers || !prizePool  || !registrationDeadline) {
       res.status(400).json({ error: "All required fields must be filled." });
        return
     }
@@ -116,7 +118,7 @@ router.put("/edit/:id", async (req, res) => {
       date: new Date(date),
       maxPlayers: parseInt(maxPlayers),
       prizePool,
-      trustScoreThreshold: parseInt(trustScoreThreshold),
+      trustScoreThreshold: trustScoreThresholdInt,
       registrationDeadline: new Date(registrationDeadline),
       location,
       rules,
@@ -126,7 +128,7 @@ router.put("/edit/:id", async (req, res) => {
     },{new:true})
     res.status(201).json({ message: "Tournament created successfully", tournament: updateTournament });
   } catch (error) {
-    console.error("Tournament creation error:", error);
+    console.log("Tournament creation error:", error);
     res.status(500).json({ error: "Server error while creating tournament." });
   }
 });

@@ -6,6 +6,8 @@ import tournamentRoute from './routes/tournamentRoute'
 import { connectDB } from "./config/db";
 import playmentRoute from "./routes/razorPaymentRoute"
 import cors from "cors"
+import './cron-jobs/tournamentStatusUpdater'; 
+
 const app = express();
 config();
 const PORT  = process.env.PORT ||5000

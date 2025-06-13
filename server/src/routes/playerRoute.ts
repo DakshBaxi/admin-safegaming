@@ -8,6 +8,7 @@ import { KYC } from "../models/KYC";
 import { Team } from "../models/Team";
 import { error } from "console";
 import { v4 as uuidv4 } from "uuid";
+import { Tournament } from "../models/Tournament";
 
 
 
@@ -32,6 +33,57 @@ router.get('/',authMiddleware, async (req:userRequestAuthentication,res)=>{
      return
  }
 })
+
+router.get('/my-tournaments', authMiddleware, async (req: userRequestAuthentication, res) => {
+  try {
+    const { email } = req.user!;
+    
+    const user = await User.findOne({ email }).populate({
+      path: 'teams',
+      options: { sort: { createdAt: -1 } },
+      populate: {
+        path: 'tournaments',
+        model: 'Tournament'
+      }
+    });
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // Keep all tournament registrations (including duplicates from different teams)
+    const tournamentRegistrations = user.teams.reduce((allRegistrations: any[], team: any) => {
+      if (team.tournaments && team.tournaments.length > 0) {
+        const registrations = team.tournaments.map((tournament: any) => ({
+          tournament: tournament.toObject(),
+          team: {
+            teamId: team._id,
+            teamName: team.teamName,
+            game: team.game,
+            registrationDate: team.createdAt
+          }
+        }));
+        allRegistrations.push(...registrations);
+      }
+      return allRegistrations;
+    }, []);
+
+    // Sort by tournament date
+    tournamentRegistrations.sort((a, b) => 
+      new Date(b.tournament.date).getTime() - new Date(a.tournament.date).getTime()
+    );
+
+    res.status(200).json({ 
+      tournaments: tournamentRegistrations,
+      totalCount: tournamentRegistrations.length
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 router.post('/',authMiddleware, async (req:userRequestAuthentication, res) => {
   try {
@@ -378,6 +430,129 @@ router.delete("/team/:teamId", authMiddleware, async (req: userRequestAuthentica
 
    res.status(200).json({ success: true, message: "Team deleted successfully" });
    return
+});
+
+// POST /api/tournaments/:id/apply - Apply team to tournament
+router.post('/tournament/:id/apply', authMiddleware, async (req: userRequestAuthentication, res) => {
+  try {
+    const { teamId } = req.body;
+    const { email } = req.user!;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+     res.status(404).json({ error: "User not found" });
+       return
+    }
+
+    // Find tournament
+    const tournament = await Tournament.findById(req.params.id);
+    if (!tournament || !tournament.isActive) {
+      res.status(404).json({
+        success: false,
+        message: 'Tournament not found or inactive',
+      });
+       return
+    }
+
+    // Check registration deadline
+    const now = new Date();
+    if (tournament.registrationDeadline && now > new Date(tournament.registrationDeadline)) {
+       res.status(400).json({
+        success: false,
+        message: 'Registration deadline has passed',
+      });
+      return
+    }
+
+    // Find team and verify ownership
+    const team = await Team.findById(teamId).populate("players");
+    if (!team) {
+     res.status(404).json({
+        success: false,
+        message: 'Team not found',
+      });
+       return 
+    }
+
+    if (team.captainId.toString() !== user._id.toString()) {
+       res.status(403).json({
+        success: false,
+        message: 'You are not authorized to register this team',
+      });
+      return
+    }
+
+    // Trust score validation
+    const trustScoreThreshold = tournament.trustScoreThreshold || 0;
+    const allPlayersQualified = team.players.every((player: any) =>
+      player.trustScore >= trustScoreThreshold
+    );
+for (const player of team.players) {
+  const kyc = await KYC.findOne({ userId: player._id });
+  const user = await User.findById(player._id);
+
+  if (!kyc || kyc.status !== "approved") {
+     res.status(403).json({
+      success: false,
+      message: `KYC is not approved for ${user?.fullName || 'a player'}`,
+    });
+    return
+  }
+}
+
+    if (!allPlayersQualified) {
+       res.status(400).json({
+        success: false,
+        message: `All team members must have a trust score of at least ${trustScoreThreshold}`,
+      });
+      return
+    }
+
+    // Player count validation based on game
+    const playerCount = team.players.length;
+    const gameName = tournament.game
+    let requiredPlayerCount = 0;
+
+    if (['bgmi', 'freeFire'].includes(gameName)) {
+      requiredPlayerCount = 4;
+    } else if (['valorant', 'counterStrkie2'].includes(gameName)) {
+      requiredPlayerCount = 5;
+    }
+
+    if (requiredPlayerCount > 0 && playerCount !== requiredPlayerCount) {
+       res.status(400).json({
+        success: false,
+        message: `Team must have exactly ${requiredPlayerCount} players for ${tournament.game}`,
+      });
+      return
+    }
+
+    tournament.registeredTeams.push({
+  teamId: team._id,
+  status: 'pending',
+  registrationDate: new Date()
+});
+tournament.currentRegistrations += 1;
+await tournament.save();
+
+// Add tournament ID to team document
+team.tournaments.push(tournament._id);
+await team.save();
+
+     res.json({
+      success: true,
+      message: 'Team registered successfully for the tournament',
+    });
+
+  } catch (error: any) {
+    console.error('Error applying to tournament:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to apply to tournament',
+      error: error.message,
+    });
+    return 
+  }
 });
 
 
